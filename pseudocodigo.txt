@@ -1,0 +1,155 @@
+Integrantes Grupo123: 
+*Colman Romero, Isaac Maximiliano (Comisión A)
+*Martin Federico, Aldavez (Comisión B)
+
+ACCION EleccionesCET_ES
+
+    // Ambiente
+	listas: arreglo [1..4] de cadena;   
+    votos: arreglo [1..4] de entero;	
+
+	cantvotos, i, opcion: entero;
+	temp_votos, temp_listas: entero;		
+	horaActual: entero;
+	
+    reg_votos: Registro	
+        nro_voto: entero(10);
+		lista: entero(1);
+    Fin Registro
+
+	reg_estudiante: Registro
+		lejago:entero(10);
+	Fin Registro	
+	
+    ArchVotos: Archivo de reg_votos;
+    RegVotos: reg_votos;
+
+	ArchEstudiantes: Archivo de reg_estudiante;
+    RegEst: reg_votos;
+	
+	Procedimiento limpiarvotos es 	
+		Para i desde 1 hasta 4 hacer
+            votos[i] := 0;
+        Fin Para
+	Fin Procedimiento
+	
+	Procedimiento mostrar_ranking es 
+		Para i desde 1 hasta 4 hacer
+            Escribir(i + 1, '.', listas[i], ':', votos[i]);
+        Fin Para		
+	Fin procedimiento
+	
+    Procedimiento procesarvotos es 
+		//Limpiamos el arreglo votos para utilizar el archivo de registro.
+		limpiarvotos;
+		
+		//Cargar archivo de registro con los votos y asignarlas a los arreglos para después procesarlos.
+		Mientras NFDA(ArchVotos) hacer	
+			Leer(ArchVotos, RegVotos);						
+			votos[RegVotos.lista] := votos[RegVotos.lista] + 1;			
+		Fin mientras
+				
+		// Mediante el método de ordenamiento por burbuja ordenamos el ranking de votos.
+        Para i desde 1 hasta 3 hacer
+            Para j desde 1 hasta 3 hacer
+                Si votos[j] < votos[j + 1] entonces
+                
+                    temp_votos := votos[j];
+                    votos[j] := votos[j + 1];
+                    votos[j + 1] := temp_votos;
+
+                    temp_listas := listas[j];
+                    listas[j] := listas[j + 1];
+                    listas[j + 1] := temp_listas;
+					
+                Fin Si
+            Fin Para
+        Fin Para
+		
+	mostrar_ranking; 
+	Fin Procedimiento
+
+    Procedimiento registrar_voto(opcion: entero) es 
+ 
+		Mientras opcion < 1 y > 4 Hacer
+			Escribir('Lista no valida, por favor vuelve a intentarlo:');
+			Leer(opcion);
+		Fin Mientras
+
+        votos[opcion] := votos[opcion] + 1;        
+		cantvotos := cantvotos + 1;
+
+		RegVotos.nro_voto := cantvotos;
+		RegVotos.lista := opcion;
+		Escribir(ArchVotos, RegVotos);
+
+		RegEst.legajo := legajo;
+		Escribir(ArchEstudiantes, RegEst);
+				
+        Escribir('Voto fue registrado con éxito.');
+    Fin Procedimiento
+
+   Procedimiento mostrar_listas es
+		// Mostramos el arreglo "listas" mediante un ciclo
+        Para i desde 1 hasta 4 hacer
+            Escribir(i, '. ', listas[i]);
+        Fin Para
+    Fin Procedimiento
+	
+	Procedimiento solicitar_legajo es
+		Escribir('Bienvenido al sistema de votación del Centro de Estudiantes (CET)');
+		Escribir('Por favor ingresa tu numero de legajo:');
+		Leer(legajo);  	
+		ingresar_lista;		
+	Fin procedimiento
+	
+	Procedimiento ingresar_lista es		
+		mostrar_listas();
+		printf("Ingrese el numero de lista por la cual desea votar (1-4): ");
+		Leer(opcion);
+		registrar_voto(opcion);				
+	Fin Procedimiento
+	
+    Procedimiento inicializar_program es
+
+        // Agregamos los elementos al arreglo "listas"		
+        listas[1] := 'Lista Celeste y Blanca';
+        listas[2] := 'Lista Los futuros Graduados';
+        listas[3] := 'Lista Recursantes';
+        listas[4] := 'Lista Acción Estudiantil';
+
+        // Inicializamos las variables del programa
+		RegVotos.nro_voto := -1;
+		RegVotos.lista := -1;
+		RegEst.legajo := -1;
+
+	    cantvotos := 0;
+		opcion := 0; 
+		legajo := 0;
+		
+		limpiar_votos;
+    Fin Procedimiento
+	
+    // Proceso
+	Abrir E/S(ArchVotos)
+	Abrir/S(ArchEstudiantes);
+
+    inicializar_program;
+	
+	Repetir
+		horaActual := HORA_SISTEMA();
+ 
+		Si (horaActual => 0800 y horaActual < 2000) entonces
+			solicitar_legajo;
+		Sino
+            printf("El horario de votacion ha finalizado. Procesando votos...\n");
+
+			//Procesamos los votos
+            procesarvotos();
+		Fin si
+	Hasta que (1)
+
+	Cerrar E/S(ArchVotos);
+	Cerrar/S(ArchEstudiantes); 
+	// Fin proceso
+FIN ACCION
